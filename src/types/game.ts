@@ -36,7 +36,8 @@ export interface IGameState {
   score: number;
   timeLeft: number;
   lives: number;
-  activeRecipe: IRecipe;
+  // No recipe before the first run (start screen).
+  activeRecipe: IRecipe | null;
   cauldronIngredients: IIngredient[];
   // Ingredient id -> portions left on the shelf.
   shelfStock: Record<string, number>;
