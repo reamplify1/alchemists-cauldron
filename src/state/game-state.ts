@@ -4,9 +4,12 @@ import {
   type IDifficultySettings,
 } from '../data/difficulty';
 import { INGREDIENTS } from '../data/ingredients';
+import { RECIPES } from '../data/recipes';
+import { calculateCauldron } from '../logic/calculate-cauldron';
 import { addToCauldron } from '../logic/cauldron';
+import { pickRandomRecipe } from '../logic/recipe-generator';
 import { createStock } from '../logic/stock';
-import type { IGameState, IIngredient } from '../types/game';
+import type { Difficulty, ICauldronValues, IGameState, IIngredient } from '../types/game';
 
 // The start screen state: empty shelf and cauldron, no recipe yet.
 export function createInitialState(): IGameState {
@@ -25,8 +28,12 @@ export function createInitialState(): IGameState {
 // One object with all current game data.
 export const gameState: IGameState = createInitialState();
 
+export function getDifficulty(): Difficulty {
+  return gameState.difficulty ?? LEVEL_1_DIFFICULTY;
+}
+
 export function getSettings(): IDifficultySettings {
-  return DIFFICULTY_SETTINGS[gameState.difficulty ?? LEVEL_1_DIFFICULTY];
+  return DIFFICULTY_SETTINGS[getDifficulty()];
 }
 
 // The first N ingredients of the catalogue, N depends on the difficulty.
@@ -34,10 +41,15 @@ export function getShelfIngredients(): IIngredient[] {
   return INGREDIENTS.slice(0, getSettings().shelfSize);
 }
 
-// A new random stock and an empty cauldron, as at the start of every new game.
-export function fillShelf(): void {
+export function getCauldronValues(): ICauldronValues {
+  return calculateCauldron(gameState.cauldronIngredients);
+}
+
+// A new random stock, an empty cauldron and a random recipe.
+export function startNewGame(): void {
   gameState.shelfStock = createStock(getShelfIngredients());
   gameState.cauldronIngredients = [];
+  gameState.activeRecipe = pickRandomRecipe(RECIPES, getDifficulty());
 }
 
 // Returns true when the ingredient was added.
