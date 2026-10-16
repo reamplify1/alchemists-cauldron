@@ -1,3 +1,27 @@
+:root {
+  --color-background: #1b1430;
+  --color-surface: #2a2047;
+  --color-surface-hover: #3a2d63;
+  --color-border: #4b3a80;
+  --color-text: #f2ecff;
+  --color-text-muted: #b6a9d9;
+  --color-accent: #7cfc9a;
+
+  --color-flame: #ff7a45;
+  --color-sparkle: #ffd84d;
+  --color-snowflake: #8fd3ff;
+  --color-root: #c8a17a;
+  --color-drop: #9be15d;
+  --color-void: #b388ff;
+  --color-feather: #ff4d6d;
+  --color-slime: #5fd3a3;
+
+  --radius: 12px;
+  --gap: 16px;
+  --opacity-empty: 0.35;
+  --opacity-blocked: 0.6;
+}
+
 *,
 *::before,
 *::after {
@@ -6,5 +30,180 @@
 
 body {
   margin: 0;
+  min-width: 375px;
+  background-color: var(--color-background);
+  color: var(--color-text);
   font-family: system-ui, sans-serif;
+}
+
+.game {
+  display: grid;
+  gap: var(--gap);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--gap);
+}
+
+.game__title {
+  margin: 0;
+  text-align: center;
+}
+
+.section-title {
+  margin: 0 0 var(--gap);
+  font-size: 1.25rem;
+}
+
+/* Shelf */
+
+.shelf__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--gap);
+}
+
+.ingredient-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: var(--gap);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ingredient-card:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+}
+
+.ingredient-card:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Shelf is blocked because the cauldron is full. */
+.ingredient-card:disabled {
+  opacity: var(--opacity-blocked);
+  cursor: not-allowed;
+}
+
+/* Out of stock: dimmed, no icon. */
+.ingredient-card--empty:disabled {
+  opacity: var(--opacity-empty);
+}
+
+.ingredient-card__stock {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: var(--color-background);
+  font-weight: 700;
+}
+
+.ingredient-card__icon {
+  display: block;
+  width: 48px;
+  height: 48px;
+}
+
+.ingredient-card__name {
+  font-weight: 600;
+  text-align: center;
+}
+
+.ingredient-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 8px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+/* Cauldron */
+
+.cauldron {
+  padding: var(--gap);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-surface);
+}
+
+.cauldron__counter {
+  margin: 0 0 var(--gap);
+  color: var(--color-text-muted);
+}
+
+.cauldron__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cauldron__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background-color: var(--color-surface-hover);
+}
+
+.cauldron__icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.cauldron__empty {
+  color: var(--color-text-muted);
+}
+
+/* Icon colors */
+
+.ingredient-icon--flame {
+  color: var(--color-flame);
+}
+
+.ingredient-icon--sparkle {
+  color: var(--color-sparkle);
+}
+
+.ingredient-icon--snowflake {
+  color: var(--color-snowflake);
+}
+
+.ingredient-icon--root {
+  color: var(--color-root);
+}
+
+.ingredient-icon--drop {
+  color: var(--color-drop);
+}
+
+.ingredient-icon--void {
+  color: var(--color-void);
+}
+
+.ingredient-icon--feather {
+  color: var(--color-feather);
+}
+
+.ingredient-icon--slime {
+  color: var(--color-slime);
 }
