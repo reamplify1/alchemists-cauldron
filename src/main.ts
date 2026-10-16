@@ -2,10 +2,10 @@ import './styles/style.css';
 import { isCauldronFull } from './logic/cauldron';
 import {
   addIngredient,
-  fillShelf,
   gameState,
   getSettings,
   getShelfIngredients,
+  startNewGame,
 } from './state/game-state';
 import { renderCauldron } from './ui/cauldron';
 import { createGameScreen, type IGameScreen } from './ui/game-screen';
@@ -55,9 +55,9 @@ function startApp(): void {
     handleShelfClick(event, screen);
   });
 
-  // Temporary: the shelf is filled right away. The Start Game button that
-  // starts a new game will replace this in US 1.4.
-  fillShelf();
+  // Temporary: a new game starts right away. The Start Game button will
+  // replace this in US 1.4.
+  startNewGame();
   render(screen);
 }
 
