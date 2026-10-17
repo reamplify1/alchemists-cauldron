@@ -2,6 +2,8 @@ import './styles/style.css';
 import { isCauldronFull } from './logic/cauldron';
 import {
   addIngredient,
+  brew,
+  canBrew,
   gameState,
   getSettings,
   getShelfIngredients,
@@ -9,10 +11,12 @@ import {
 } from './state/game-state';
 import { renderCauldron } from './ui/cauldron';
 import { createGameScreen, type IGameScreen } from './ui/game-screen';
+import { renderRecipe } from './ui/recipe';
 import { renderShelf } from './ui/shelf';
 
 function render(screen: IGameScreen): void {
   const { maxCauldronSize } = getSettings();
+  const isPlaying = gameState.status === 'playing';
 
   renderShelf(
     screen.shelf,
@@ -20,12 +24,22 @@ function render(screen: IGameScreen): void {
     gameState.shelfStock,
     isCauldronFull(gameState.cauldronIngredients, maxCauldronSize),
   );
-  renderCauldron(
-    screen.cauldronList,
-    screen.cauldronCounter,
-    gameState.cauldronIngredients,
+  renderCauldron(screen.cauldronList, gameState.cauldronIngredients);
+  renderRecipe(
+    {
+      name: screen.recipeName,
+      ranges: screen.recipeRanges,
+      counter: screen.recipeCounter,
+    },
+    gameState.activeRecipe,
+    gameState.cauldronIngredients.length,
     maxCauldronSize,
   );
+
+  // Before the first run, show Start Game in the center instead of Brew.
+  screen.startButton.hidden = isPlaying;
+  screen.brewButton.hidden = !isPlaying;
+  screen.brewButton.disabled = !canBrew();
 }
 
 function handleShelfClick(event: MouseEvent, screen: IGameScreen): void {
@@ -41,6 +55,16 @@ function handleShelfClick(event: MouseEvent, screen: IGameScreen): void {
   }
 }
 
+function handleStartClick(screen: IGameScreen): void {
+  startNewGame();
+  render(screen);
+}
+
+function handleBrewClick(screen: IGameScreen): void {
+  brew();
+  render(screen);
+}
+
 function startApp(): void {
   const app = document.querySelector<HTMLDivElement>('#app');
 
@@ -54,10 +78,13 @@ function startApp(): void {
   screen.shelf.addEventListener('click', (event) => {
     handleShelfClick(event, screen);
   });
+  screen.startButton.addEventListener('click', () => {
+    handleStartClick(screen);
+  });
+  screen.brewButton.addEventListener('click', () => {
+    handleBrewClick(screen);
+  });
 
-  // Temporary: a new game starts right away. The Start Game button will
-  // replace this in US 1.4.
-  startNewGame();
   render(screen);
 }
 
