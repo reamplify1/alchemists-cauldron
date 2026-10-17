@@ -7,6 +7,7 @@ export interface IGameScreen {
   recipeCounter: HTMLElement;
   startButton: HTMLButtonElement;
   brewButton: HTMLButtonElement;
+  pauseButton: HTMLButtonElement;
   statusScore: HTMLElement;
   statusLives: HTMLElement;
   timerWrapper: HTMLElement;
@@ -16,6 +17,9 @@ export interface IGameScreen {
   gameOverReason: HTMLElement;
   gameOverScore: HTMLElement;
   playAgainButton: HTMLButtonElement;
+  pauseDialog: HTMLElement;
+  resumeButton: HTMLButtonElement;
+  exitButton: HTMLButtonElement;
 }
 
 function getElement<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: string): T {
@@ -51,6 +55,7 @@ export function createGameScreen(): IGameScreen {
       <div class="recipe__actions">
         <button type="button" class="button button--start">Start Game</button>
         <button type="button" class="button button--brew" hidden>Brew</button>
+        <button type="button" class="button button--pause" hidden>Pause</button>
       </div>
     </section>
 
@@ -64,12 +69,22 @@ export function createGameScreen(): IGameScreen {
       <ol class="cauldron__list"></ol>
     </section>
 
-    <div class="game-over" hidden>
-      <div class="game-over__card">
-        <h2 class="game-over__title">Game Over</h2>
+    <div class="dialog game-over" hidden>
+      <div class="dialog__card">
+        <h2 class="dialog__title">Game Over</h2>
         <p class="game-over__reason"></p>
         <p class="game-over__score"></p>
         <button type="button" class="button button--play-again">Play again</button>
+      </div>
+    </div>
+
+    <div class="dialog pause" hidden>
+      <div class="dialog__card">
+        <h2 class="dialog__title">Paused</h2>
+        <div class="pause__actions">
+          <button type="button" class="button button--resume">Resume</button>
+          <button type="button" class="button button--exit">Exit to Menu</button>
+        </div>
       </div>
     </div>
   `;
@@ -83,6 +98,7 @@ export function createGameScreen(): IGameScreen {
     recipeCounter: getElement(root, '.recipe__counter'),
     startButton: getElement<HTMLButtonElement>(root, '.button--start'),
     brewButton: getElement<HTMLButtonElement>(root, '.button--brew'),
+    pauseButton: getElement<HTMLButtonElement>(root, '.button--pause'),
     statusScore: getElement(root, '.status__score'),
     statusLives: getElement(root, '.status__lives'),
     timerWrapper: getElement(root, '.status__timer'),
@@ -92,5 +108,8 @@ export function createGameScreen(): IGameScreen {
     gameOverReason: getElement(root, '.game-over__reason'),
     gameOverScore: getElement(root, '.game-over__score'),
     playAgainButton: getElement<HTMLButtonElement>(root, '.button--play-again'),
+    pauseDialog: getElement(root, '.pause'),
+    resumeButton: getElement<HTMLButtonElement>(root, '.button--resume'),
+    exitButton: getElement<HTMLButtonElement>(root, '.button--exit'),
   };
 }
