@@ -6,6 +6,7 @@
   --color-text: #f2ecff;
   --color-text-muted: #b6a9d9;
   --color-accent: #7cfc9a;
+  --color-warning: #ffb84d;
 
   --color-flame: #ff7a45;
   --color-sparkle: #ffd84d;
@@ -52,6 +53,81 @@ body {
 .section-title {
   margin: 0 0 var(--gap);
   font-size: 1.25rem;
+}
+
+/* Recipe panel */
+
+.recipe {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: var(--gap);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-surface);
+  text-align: center;
+}
+
+.recipe__name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.recipe__ranges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-muted);
+}
+
+.recipe__counter {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Highlighted when the cauldron is full, so the player understands why the
+   shelf is blocked. */
+.recipe__counter--full {
+  color: var(--color-background);
+  background-color: var(--color-warning);
+  padding: 2px 10px;
+  border-radius: var(--radius);
+}
+
+.recipe__actions {
+  display: flex;
+  justify-content: center;
+}
+
+.button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: var(--radius);
+  background-color: var(--color-accent);
+  color: var(--color-background);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.button:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  opacity: var(--opacity-blocked);
+  cursor: not-allowed;
 }
 
 /* Shelf */
@@ -139,11 +215,6 @@ body {
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
   background-color: var(--color-surface);
-}
-
-.cauldron__counter {
-  margin: 0 0 var(--gap);
-  color: var(--color-text-muted);
 }
 
 .cauldron__list {

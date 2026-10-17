@@ -16,14 +16,9 @@ function createItem(ingredient: IIngredient): HTMLLIElement {
   return item;
 }
 
-export function renderCauldron(
-  list: HTMLElement,
-  counter: HTMLElement,
-  ingredients: IIngredient[],
-  maxSize: number,
-): void {
-  counter.textContent = `Ingredients: ${ingredients.length} / ${maxSize}`;
-
+// The ingredient counter lives on the recipe panel (see ui/recipe.ts); this
+// list only shows what is currently in the cauldron.
+export function renderCauldron(list: HTMLElement, ingredients: IIngredient[]): void {
   if (ingredients.length === 0) {
     const empty = document.createElement('li');
     empty.className = 'cauldron__empty';

@@ -7,9 +7,14 @@ import { INGREDIENTS } from '../data/ingredients';
 import { RECIPES } from '../data/recipes';
 import { calculateCauldron } from '../logic/calculate-cauldron';
 import { addToCauldron } from '../logic/cauldron';
+import { checkBrew } from '../logic/brew';
 import { pickRandomRecipe } from '../logic/recipe-generator';
 import { createStock } from '../logic/stock';
 import type { Difficulty, ICauldronValues, IGameState, IIngredient } from '../types/game';
+
+// US 1.3 fixes the time bonus cap at 120 s on its own, ahead of the full
+// timer (US 1.4), which will cap it at the difficulty's starting time instead.
+const BREW_TIME_BONUS_CAP_SECONDS = 120;
 
 // The start screen state: empty shelf and cauldron, no recipe yet.
 export function createInitialState(): IGameState {
@@ -45,8 +50,10 @@ export function getCauldronValues(): ICauldronValues {
   return calculateCauldron(gameState.cauldronIngredients);
 }
 
-// A new random stock, an empty cauldron and a random recipe.
+// A new random stock, an empty cauldron and a random recipe. Switches the
+// game from the start screen to the active game state.
 export function startNewGame(): void {
+  gameState.status = 'playing';
   gameState.shelfStock = createStock(getShelfIngredients());
   gameState.cauldronIngredients = [];
   gameState.activeRecipe = pickRandomRecipe(RECIPES, getDifficulty());
@@ -74,4 +81,37 @@ export function addIngredient(ingredientId: string): boolean {
   gameState.cauldronIngredients = result.cauldronIngredients;
   gameState.shelfStock = result.shelfStock;
   return true;
+}
+
+// Brew is only allowed while a game is running and the cauldron is not empty.
+export function canBrew(): boolean {
+  return gameState.status === 'playing' && gameState.cauldronIngredients.length >= 1;
+}
+
+// Checks the cauldron against the active recipe and applies the result.
+// On success: score and time bonus, cauldron cleared, a new recipe picked.
+// On failure: one life lost, cauldron cleared, the recipe stays the same.
+// Returns true when the brew succeeded.
+export function brew(): boolean {
+  if (!canBrew() || !gameState.activeRecipe) {
+    return false;
+  }
+
+  const settings = getSettings();
+  const success = checkBrew(getCauldronValues(), gameState.activeRecipe, settings.tolerance);
+
+  if (success) {
+    gameState.score += settings.scorePerBrew;
+    gameState.timeLeft = Math.min(
+      gameState.timeLeft + settings.timeBonusSeconds,
+      BREW_TIME_BONUS_CAP_SECONDS,
+    );
+    gameState.cauldronIngredients = [];
+    gameState.activeRecipe = pickRandomRecipe(RECIPES, getDifficulty());
+  } else {
+    gameState.lives -= 1;
+    gameState.cauldronIngredients = [];
+  }
+
+  return success;
 }
