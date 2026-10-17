@@ -8,21 +8,30 @@ import {
   getSettings,
   getShelfIngredients,
   startNewGame,
+  tick,
 } from './state/game-state';
 import { renderCauldron } from './ui/cauldron';
+import { renderGameOver } from './ui/game-over';
 import { createGameScreen, type IGameScreen } from './ui/game-screen';
 import { renderRecipe } from './ui/recipe';
 import { renderShelf } from './ui/shelf';
+import { renderStatusBar } from './ui/status-bar';
+
+// How often the timer is recalculated and the screen is redrawn. The actual
+// time left always comes from timestamps (see state/game-state.ts), so this
+// interval only decides how smooth the countdown looks, not its accuracy.
+const TICK_INTERVAL_MS = 250;
 
 function render(screen: IGameScreen): void {
-  const { maxCauldronSize } = getSettings();
+  const settings = getSettings();
   const isPlaying = gameState.status === 'playing';
+  const isGameOver = gameState.status === 'game-over';
 
   renderShelf(
     screen.shelf,
     getShelfIngredients(),
     gameState.shelfStock,
-    isCauldronFull(gameState.cauldronIngredients, maxCauldronSize),
+    isCauldronFull(gameState.cauldronIngredients, settings.maxCauldronSize),
   );
   renderCauldron(screen.cauldronList, gameState.cauldronIngredients);
   renderRecipe(
@@ -33,11 +42,36 @@ function render(screen: IGameScreen): void {
     },
     gameState.activeRecipe,
     gameState.cauldronIngredients.length,
-    maxCauldronSize,
+    settings.maxCauldronSize,
+  );
+  renderStatusBar(
+    {
+      score: screen.statusScore,
+      lives: screen.statusLives,
+      timerWrapper: screen.timerWrapper,
+      timerLabel: screen.timerLabel,
+      timerFill: screen.timerFill,
+    },
+    gameState.score,
+    gameState.lives,
+    settings.lives,
+    gameState.timeLeft,
+    settings.startingTimeSeconds,
+  );
+  renderGameOver(
+    {
+      container: screen.gameOver,
+      reason: screen.gameOverReason,
+      score: screen.gameOverScore,
+    },
+    isGameOver,
+    gameState.gameOverReason,
+    gameState.score,
   );
 
   // Before the first run, show Start Game in the center instead of Brew.
-  screen.startButton.hidden = isPlaying;
+  // Once a game has finished, the Game Over screen offers Play again instead.
+  screen.startButton.hidden = isPlaying || isGameOver;
   screen.brewButton.hidden = !isPlaying;
   screen.brewButton.disabled = !canBrew();
 }
@@ -84,6 +118,14 @@ function startApp(): void {
   screen.brewButton.addEventListener('click', () => {
     handleBrewClick(screen);
   });
+  screen.playAgainButton.addEventListener('click', () => {
+    handleStartClick(screen);
+  });
+
+  setInterval(() => {
+    tick();
+    render(screen);
+  }, TICK_INTERVAL_MS);
 
   render(screen);
 }
