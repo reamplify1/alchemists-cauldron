@@ -4,15 +4,19 @@ import {
   addIngredient,
   brew,
   canBrew,
+  exitToMenu,
   gameState,
   getSettings,
   getShelfIngredients,
+  pauseGame,
+  resumeGame,
   startNewGame,
   tick,
 } from './state/game-state';
 import { renderCauldron } from './ui/cauldron';
 import { renderGameOver } from './ui/game-over';
 import { createGameScreen, type IGameScreen } from './ui/game-screen';
+import { renderPauseScreen } from './ui/pause';
 import { renderRecipe } from './ui/recipe';
 import { renderShelf } from './ui/shelf';
 import { renderStatusBar } from './ui/status-bar';
@@ -24,7 +28,9 @@ const TICK_INTERVAL_MS = 250;
 
 function render(screen: IGameScreen): void {
   const settings = getSettings();
+  const isMenu = gameState.status === 'menu';
   const isPlaying = gameState.status === 'playing';
+  const isPaused = gameState.status === 'paused';
   const isGameOver = gameState.status === 'game-over';
 
   renderShelf(
@@ -68,12 +74,16 @@ function render(screen: IGameScreen): void {
     gameState.gameOverReason,
     gameState.score,
   );
+  renderPauseScreen({ container: screen.pauseDialog }, isPaused);
 
-  // Before the first run, show Start Game in the center instead of Brew.
-  // Once a game has finished, the Game Over screen offers Play again instead.
-  screen.startButton.hidden = isPlaying || isGameOver;
+  // Blurs the recipe/shelf/cauldron while paused, so the player cannot plan
+  // moves (see .game--paused in style.css).
+  screen.root.classList.toggle('game--paused', isPaused);
+
+  screen.startButton.hidden = !isMenu;
   screen.brewButton.hidden = !isPlaying;
   screen.brewButton.disabled = !canBrew();
+  screen.pauseButton.hidden = !isPlaying;
 }
 
 function handleShelfClick(event: MouseEvent, screen: IGameScreen): void {
@@ -120,6 +130,26 @@ function startApp(): void {
   });
   screen.playAgainButton.addEventListener('click', () => {
     handleStartClick(screen);
+  });
+  screen.pauseButton.addEventListener('click', () => {
+    pauseGame();
+    render(screen);
+  });
+  screen.resumeButton.addEventListener('click', () => {
+    resumeGame();
+    render(screen);
+  });
+  screen.exitButton.addEventListener('click', () => {
+    exitToMenu();
+    render(screen);
+  });
+
+  // Pause automatically whenever the tab is sent to the background.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      pauseGame();
+      render(screen);
+    }
   });
 
   setInterval(() => {

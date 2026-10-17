@@ -111,6 +111,33 @@ export function startNewGame(): void {
   setTimeLeft(settings.startingTimeSeconds);
 }
 
+// Freezes the countdown and blocks gameplay actions (addIngredient and brew
+// already check for "playing") until the game is resumed.
+export function pauseGame(): void {
+  if (gameState.status !== 'playing') {
+    return;
+  }
+
+  refreshTimeLeft();
+  gameState.status = 'paused';
+}
+
+// Continues the same game from where it was paused: the timer resumes from
+// the frozen timeLeft instead of restarting.
+export function resumeGame(): void {
+  if (gameState.status !== 'paused') {
+    return;
+  }
+
+  setTimeLeft(gameState.timeLeft);
+  gameState.status = 'playing';
+}
+
+// Leaves the current run (paused or not) and returns to the start screen.
+export function exitToMenu(): void {
+  Object.assign(gameState, createInitialState());
+}
+
 // Recalculates the timer and ends the game when it reaches 0. Call this
 // regularly (e.g. from an interval in the UI layer) while a game may be
 // running; it does nothing outside the "playing" status.

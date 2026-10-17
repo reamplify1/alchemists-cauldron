@@ -130,9 +130,10 @@ body {
   }
 }
 
-/* Game Over screen, kept separate from the main game field. */
+/* Shared dialog overlay: the Game Over and Pause screens reuse this same
+   layout, kept separate from the main game field. */
 
-.game-over {
+.dialog {
   position: fixed;
   inset: 0;
   display: flex;
@@ -142,11 +143,11 @@ body {
   background-color: rgb(0 0 0 / 60%);
 }
 
-.game-over[hidden] {
+.dialog[hidden] {
   display: none;
 }
 
-.game-over__card {
+.dialog__card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -159,14 +160,33 @@ body {
   text-align: center;
 }
 
-.game-over__title {
+.dialog__title {
   margin: 0;
 }
+
+/* Game Over screen */
 
 .game-over__reason,
 .game-over__score {
   margin: 0;
   color: var(--color-text-muted);
+}
+
+/* Pause screen */
+
+.pause__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* While paused, blur the play field so the player cannot plan moves. The
+   dialog itself is a sibling, so it is never blurred. */
+.game--paused .recipe,
+.game--paused .shelf,
+.game--paused .cauldron {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Recipe panel */
@@ -217,6 +237,7 @@ body {
 .recipe__actions {
   display: flex;
   justify-content: center;
+  gap: 8px;
 }
 
 .button {
