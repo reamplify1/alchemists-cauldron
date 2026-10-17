@@ -1,21 +1,27 @@
 import './styles/style.css';
 import { isCauldronFull } from './logic/cauldron';
+import { sortLeaderboard } from './logic/leaderboard';
 import {
   addIngredient,
   brew,
   canBrew,
+  canSaveScore,
   exitToMenu,
   gameState,
   getSettings,
   getShelfIngredients,
   pauseGame,
   resumeGame,
+  saveScore,
   startNewGame,
   tick,
 } from './state/game-state';
+import { clearLeaderboard, loadLeaderboard } from './storage/leaderboard';
 import { renderCauldron } from './ui/cauldron';
 import { renderGameOver } from './ui/game-over';
 import { createGameScreen, type IGameScreen } from './ui/game-screen';
+import { renderLeaderboard } from './ui/leaderboard';
+import { renderNamePrompt } from './ui/name-prompt';
 import { renderPauseScreen } from './ui/pause';
 import { renderRecipe } from './ui/recipe';
 import { renderShelf } from './ui/shelf';
@@ -25,6 +31,15 @@ import { renderStatusBar } from './ui/status-bar';
 // time left always comes from timestamps (see state/game-state.ts), so this
 // interval only decides how smooth the countdown looks, not its accuracy.
 const TICK_INTERVAL_MS = 250;
+
+// Validation message shown under the name input. This is transient UI
+// state, not a game rule, so it lives here rather than in game-state.ts.
+let nameErrorMessage = '';
+
+// Whether the Leaderboard / Clear Leaderboard confirmation overlays are
+// open. Also UI-only state: it has no effect on the game itself.
+let isLeaderboardOpen = false;
+let isClearConfirmOpen = false;
 
 function render(screen: IGameScreen): void {
   const settings = getSettings();
@@ -74,13 +89,29 @@ function render(screen: IGameScreen): void {
     gameState.gameOverReason,
     gameState.score,
   );
+  renderNamePrompt(
+    { container: screen.namePrompt, error: screen.nameError },
+    canSaveScore(),
+    nameErrorMessage,
+  );
   renderPauseScreen({ container: screen.pauseDialog }, isPaused);
+  renderLeaderboard(
+    {
+      container: screen.leaderboardDialog,
+      body: screen.leaderboardBody,
+      empty: screen.leaderboardEmpty,
+    },
+    isLeaderboardOpen,
+    sortLeaderboard(loadLeaderboard()),
+  );
+  screen.clearConfirmDialog.hidden = !isClearConfirmOpen;
 
   // Blurs the recipe/shelf/cauldron while paused, so the player cannot plan
   // moves (see .game--paused in style.css).
   screen.root.classList.toggle('game--paused', isPaused);
 
   screen.startButton.hidden = !isMenu;
+  screen.leaderboardButton.hidden = !isMenu;
   screen.brewButton.hidden = !isPlaying;
   screen.brewButton.disabled = !canBrew();
   screen.pauseButton.hidden = !isPlaying;
@@ -101,11 +132,23 @@ function handleShelfClick(event: MouseEvent, screen: IGameScreen): void {
 
 function handleStartClick(screen: IGameScreen): void {
   startNewGame();
+  nameErrorMessage = '';
   render(screen);
 }
 
 function handleBrewClick(screen: IGameScreen): void {
   brew();
+  render(screen);
+}
+
+function handleSaveScoreClick(screen: IGameScreen): void {
+  if (saveScore(screen.nameInput.value)) {
+    screen.nameInput.value = '';
+    nameErrorMessage = '';
+  } else {
+    nameErrorMessage = 'Enter a name of 2-15 characters: letters, digits, spaces, _ or -.';
+  }
+
   render(screen);
 }
 
@@ -141,6 +184,42 @@ function startApp(): void {
   });
   screen.exitButton.addEventListener('click', () => {
     exitToMenu();
+    render(screen);
+  });
+
+  screen.saveScoreButton.addEventListener('click', () => {
+    handleSaveScoreClick(screen);
+  });
+  screen.nameInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      handleSaveScoreClick(screen);
+    }
+  });
+
+  screen.leaderboardButton.addEventListener('click', () => {
+    isLeaderboardOpen = true;
+    render(screen);
+  });
+  screen.viewLeaderboardButton.addEventListener('click', () => {
+    isLeaderboardOpen = true;
+    render(screen);
+  });
+  screen.closeLeaderboardButton.addEventListener('click', () => {
+    isLeaderboardOpen = false;
+    isClearConfirmOpen = false;
+    render(screen);
+  });
+  screen.clearLeaderboardButton.addEventListener('click', () => {
+    isClearConfirmOpen = true;
+    render(screen);
+  });
+  screen.cancelClearButton.addEventListener('click', () => {
+    isClearConfirmOpen = false;
+    render(screen);
+  });
+  screen.confirmClearButton.addEventListener('click', () => {
+    clearLeaderboard();
+    isClearConfirmOpen = false;
     render(screen);
   });
 

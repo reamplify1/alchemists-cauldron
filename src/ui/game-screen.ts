@@ -6,6 +6,7 @@ export interface IGameScreen {
   recipeRanges: HTMLElement;
   recipeCounter: HTMLElement;
   startButton: HTMLButtonElement;
+  leaderboardButton: HTMLButtonElement;
   brewButton: HTMLButtonElement;
   pauseButton: HTMLButtonElement;
   statusScore: HTMLElement;
@@ -16,10 +17,23 @@ export interface IGameScreen {
   gameOver: HTMLElement;
   gameOverReason: HTMLElement;
   gameOverScore: HTMLElement;
+  namePrompt: HTMLElement;
+  nameInput: HTMLInputElement;
+  nameError: HTMLElement;
+  saveScoreButton: HTMLButtonElement;
   playAgainButton: HTMLButtonElement;
+  viewLeaderboardButton: HTMLButtonElement;
   pauseDialog: HTMLElement;
   resumeButton: HTMLButtonElement;
   exitButton: HTMLButtonElement;
+  leaderboardDialog: HTMLElement;
+  leaderboardBody: HTMLElement;
+  leaderboardEmpty: HTMLElement;
+  clearLeaderboardButton: HTMLButtonElement;
+  closeLeaderboardButton: HTMLButtonElement;
+  clearConfirmDialog: HTMLElement;
+  confirmClearButton: HTMLButtonElement;
+  cancelClearButton: HTMLButtonElement;
 }
 
 function getElement<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: string): T {
@@ -54,6 +68,7 @@ export function createGameScreen(): IGameScreen {
       <p class="recipe__counter"></p>
       <div class="recipe__actions">
         <button type="button" class="button button--start">Start Game</button>
+        <button type="button" class="button button--leaderboard">Leaderboard</button>
         <button type="button" class="button button--brew" hidden>Brew</button>
         <button type="button" class="button button--pause" hidden>Pause</button>
       </div>
@@ -74,16 +89,71 @@ export function createGameScreen(): IGameScreen {
         <h2 class="dialog__title">Game Over</h2>
         <p class="game-over__reason"></p>
         <p class="game-over__score"></p>
-        <button type="button" class="button button--play-again">Play again</button>
+
+        <div class="name-prompt">
+          <label class="name-prompt__label" for="leaderboard-name-input">
+            New Top-10 score! Enter your name:
+          </label>
+          <div class="name-prompt__row">
+            <input
+              type="text"
+              id="leaderboard-name-input"
+              class="name-prompt__input"
+              minlength="2"
+              maxlength="15"
+              placeholder="Your name"
+            />
+            <button type="button" class="button button--save-score">Save</button>
+          </div>
+          <p class="name-prompt__error"></p>
+        </div>
+
+        <div class="dialog__actions">
+          <button type="button" class="button button--play-again">Play again</button>
+          <button type="button" class="button button--view-leaderboard">Leaderboard</button>
+        </div>
       </div>
     </div>
 
     <div class="dialog pause" hidden>
       <div class="dialog__card">
         <h2 class="dialog__title">Paused</h2>
-        <div class="pause__actions">
+        <div class="dialog__actions">
           <button type="button" class="button button--resume">Resume</button>
           <button type="button" class="button button--exit">Exit to Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog leaderboard" hidden>
+      <div class="dialog__card dialog__card--wide">
+        <h2 class="dialog__title">Leaderboard</h2>
+        <p class="leaderboard__empty">No scores yet. Be the first!</p>
+        <table class="leaderboard__table" aria-label="Top 10 leaderboard">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Score</th>
+              <th scope="col">Date</th>
+            </tr>
+          </thead>
+          <tbody class="leaderboard__body"></tbody>
+        </table>
+        <div class="dialog__actions">
+          <button type="button" class="button button--clear-leaderboard">Clear Leaderboard</button>
+          <button type="button" class="button button--close-leaderboard">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog clear-confirm" hidden>
+      <div class="dialog__card">
+        <h2 class="dialog__title">Clear Leaderboard?</h2>
+        <p class="clear-confirm__text">This will permanently delete all saved scores.</p>
+        <div class="dialog__actions">
+          <button type="button" class="button button--confirm-clear">Yes, Clear</button>
+          <button type="button" class="button button--cancel-clear">Cancel</button>
         </div>
       </div>
     </div>
@@ -97,6 +167,7 @@ export function createGameScreen(): IGameScreen {
     recipeRanges: getElement(root, '.recipe__ranges'),
     recipeCounter: getElement(root, '.recipe__counter'),
     startButton: getElement<HTMLButtonElement>(root, '.button--start'),
+    leaderboardButton: getElement<HTMLButtonElement>(root, '.button--leaderboard'),
     brewButton: getElement<HTMLButtonElement>(root, '.button--brew'),
     pauseButton: getElement<HTMLButtonElement>(root, '.button--pause'),
     statusScore: getElement(root, '.status__score'),
@@ -107,9 +178,22 @@ export function createGameScreen(): IGameScreen {
     gameOver: getElement(root, '.game-over'),
     gameOverReason: getElement(root, '.game-over__reason'),
     gameOverScore: getElement(root, '.game-over__score'),
+    namePrompt: getElement(root, '.name-prompt'),
+    nameInput: getElement<HTMLInputElement>(root, '.name-prompt__input'),
+    nameError: getElement(root, '.name-prompt__error'),
+    saveScoreButton: getElement<HTMLButtonElement>(root, '.button--save-score'),
     playAgainButton: getElement<HTMLButtonElement>(root, '.button--play-again'),
+    viewLeaderboardButton: getElement<HTMLButtonElement>(root, '.button--view-leaderboard'),
     pauseDialog: getElement(root, '.pause'),
     resumeButton: getElement<HTMLButtonElement>(root, '.button--resume'),
     exitButton: getElement<HTMLButtonElement>(root, '.button--exit'),
+    leaderboardDialog: getElement(root, '.leaderboard'),
+    leaderboardBody: getElement(root, '.leaderboard__body'),
+    leaderboardEmpty: getElement(root, '.leaderboard__empty'),
+    clearLeaderboardButton: getElement<HTMLButtonElement>(root, '.button--clear-leaderboard'),
+    closeLeaderboardButton: getElement<HTMLButtonElement>(root, '.button--close-leaderboard'),
+    clearConfirmDialog: getElement(root, '.clear-confirm'),
+    confirmClearButton: getElement<HTMLButtonElement>(root, '.button--confirm-clear'),
+    cancelClearButton: getElement<HTMLButtonElement>(root, '.button--cancel-clear'),
   };
 }

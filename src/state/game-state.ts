@@ -8,8 +8,14 @@ import { RECIPES } from '../data/recipes';
 import { calculateCauldron } from '../logic/calculate-cauldron';
 import { addToCauldron } from '../logic/cauldron';
 import { checkBrew } from '../logic/brew';
+import {
+  insertLeaderboardEntry,
+  isValidPlayerName,
+  qualifiesForLeaderboard,
+} from '../logic/leaderboard';
 import { pickRandomRecipe } from '../logic/recipe-generator';
 import { createStock, getStock } from '../logic/stock';
+import { loadLeaderboard, saveLeaderboard } from '../storage/leaderboard';
 import type {
   Difficulty,
   GameOverReason,
@@ -30,6 +36,7 @@ export function createInitialState(): IGameState {
     shelfStock: {},
     difficulty: LEVEL_1_DIFFICULTY,
     gameOverReason: undefined,
+    scoreSaved: false,
   };
 }
 
@@ -105,6 +112,7 @@ export function startNewGame(): void {
   gameState.score = 0;
   gameState.lives = settings.lives;
   gameState.gameOverReason = undefined;
+  gameState.scoreSaved = false;
   gameState.shelfStock = createStock(getShelfIngredients());
   gameState.cauldronIngredients = [];
   gameState.activeRecipe = pickRandomRecipe(RECIPES, getDifficulty());
@@ -219,4 +227,40 @@ export function brew(): boolean {
 
   checkOutOfIngredients();
   return success;
+}
+
+// True while the current game-over score still qualifies for the Top 10
+// and has not been saved yet. Reflects the leaderboard as it is right now,
+// so it stays correct even if the board was cleared in another tab.
+export function canSaveScore(): boolean {
+  return (
+    gameState.status === 'game-over' &&
+    !gameState.scoreSaved &&
+    qualifiesForLeaderboard(loadLeaderboard(), gameState.score)
+  );
+}
+
+function makeEntryId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// Saves the current score under the given name. Returns false (and saves
+// nothing) when the name is invalid or saving is not currently allowed.
+export function saveScore(name: string): boolean {
+  const trimmedName = name.trim();
+
+  if (!canSaveScore() || !isValidPlayerName(trimmedName)) {
+    return false;
+  }
+
+  const entry = {
+    id: makeEntryId(),
+    name: trimmedName,
+    score: gameState.score,
+    date: Date.now(),
+  };
+
+  saveLeaderboard(insertLeaderboardEntry(loadLeaderboard(), entry));
+  gameState.scoreSaved = true;
+  return true;
 }
