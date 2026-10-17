@@ -164,6 +164,20 @@ body {
   margin: 0;
 }
 
+/* Shared row of buttons at the bottom of a dialog card (Game Over, Pause,
+   Leaderboard, Clear Leaderboard confirmation). */
+.dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Wider card for the leaderboard table. */
+.dialog__card--wide {
+  max-width: 480px;
+}
+
 /* Game Over screen */
 
 .game-over__reason,
@@ -172,11 +186,79 @@ body {
   color: var(--color-text-muted);
 }
 
-/* Pause screen */
+/* Name prompt, shown inside the Game Over dialog for a Top-10 score */
 
-.pause__actions {
+.name-prompt {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 8px;
+  width: 100%;
+}
+
+.name-prompt__label {
+  margin: 0;
+  font-weight: 600;
+}
+
+.name-prompt__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.name-prompt__input {
+  width: 160px;
+  padding: 8px 12px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.name-prompt__input:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.name-prompt__error {
+  margin: 0;
+  min-height: 1.2em;
+  color: var(--color-feather);
+  font-size: 0.85rem;
+}
+
+/* Leaderboard */
+
+.leaderboard__empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.leaderboard__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard__table th,
+.leaderboard__table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.leaderboard__table th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* Clear Leaderboard confirmation */
+
+.clear-confirm__text {
+  margin: 0;
+  color: var(--color-text-muted);
 }
 
 /* While paused, blur the play field so the player cannot plan moves. The
@@ -236,6 +318,7 @@ body {
 
 .recipe__actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
 }

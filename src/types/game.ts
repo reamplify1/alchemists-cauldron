@@ -34,6 +34,15 @@ export interface ICauldronValues {
   magicPower: number;
 }
 
+// One saved leaderboard entry (see storage/leaderboard.ts).
+export interface ILeaderboardEntry {
+  id: string;
+  name: string;
+  score: number;
+  // Date.now() timestamp of when the entry was saved.
+  date: number;
+}
+
 export interface IGameState {
   status: GameStatus;
   score: number;
@@ -46,6 +55,9 @@ export interface IGameState {
   shelfStock: Record<string, number>;
   // Set only while status is "game-over".
   gameOverReason?: GameOverReason;
+  // True once the current run's score has been saved to the leaderboard,
+  // so the name prompt is not shown twice for the same game over.
+  scoreSaved: boolean;
   // Level 2+
   difficulty?: Difficulty;
   // Level 3+
