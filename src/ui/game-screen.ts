@@ -7,6 +7,15 @@ export interface IGameScreen {
   recipeCounter: HTMLElement;
   startButton: HTMLButtonElement;
   brewButton: HTMLButtonElement;
+  statusScore: HTMLElement;
+  statusLives: HTMLElement;
+  timerWrapper: HTMLElement;
+  timerLabel: HTMLElement;
+  timerFill: HTMLElement;
+  gameOver: HTMLElement;
+  gameOverReason: HTMLElement;
+  gameOverScore: HTMLElement;
+  playAgainButton: HTMLButtonElement;
 }
 
 function getElement<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: string): T {
@@ -24,6 +33,15 @@ export function createGameScreen(): IGameScreen {
   root.className = 'game';
   root.innerHTML = `
     <h1 class="game__title">Alchemist's Cauldron</h1>
+
+    <section class="status" aria-label="Game status">
+      <p class="status__score"></p>
+      <div class="status__lives"></div>
+      <div class="status__timer">
+        <p class="status__timer-label"></p>
+        <div class="status__timer-bar"><div class="status__timer-fill"></div></div>
+      </div>
+    </section>
 
     <section class="recipe" aria-labelledby="recipe-title">
       <h2 class="section-title" id="recipe-title">Recipe</h2>
@@ -45,6 +63,15 @@ export function createGameScreen(): IGameScreen {
       <h2 class="section-title" id="cauldron-title">Cauldron</h2>
       <ol class="cauldron__list"></ol>
     </section>
+
+    <div class="game-over" hidden>
+      <div class="game-over__card">
+        <h2 class="game-over__title">Game Over</h2>
+        <p class="game-over__reason"></p>
+        <p class="game-over__score"></p>
+        <button type="button" class="button button--play-again">Play again</button>
+      </div>
+    </div>
   `;
 
   return {
@@ -56,5 +83,14 @@ export function createGameScreen(): IGameScreen {
     recipeCounter: getElement(root, '.recipe__counter'),
     startButton: getElement<HTMLButtonElement>(root, '.button--start'),
     brewButton: getElement<HTMLButtonElement>(root, '.button--brew'),
+    statusScore: getElement(root, '.status__score'),
+    statusLives: getElement(root, '.status__lives'),
+    timerWrapper: getElement(root, '.status__timer'),
+    timerLabel: getElement(root, '.status__timer-label'),
+    timerFill: getElement(root, '.status__timer-fill'),
+    gameOver: getElement(root, '.game-over'),
+    gameOverReason: getElement(root, '.game-over__reason'),
+    gameOverScore: getElement(root, '.game-over__score'),
+    playAgainButton: getElement<HTMLButtonElement>(root, '.button--play-again'),
   };
 }
