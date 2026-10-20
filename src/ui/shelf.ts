@@ -104,12 +104,34 @@ function positionTooltip(card: HTMLElement): void {
   tooltip.classList.toggle('tooltip--up', opensUp);
 }
 
+// The signature of the last shelf actually drawn. render() in main.ts runs
+// on every 250ms timer tick regardless of whether anything changed, but
+// rebuilding every card every time would replace the element the mouse is
+// currently over with a new one — losing the browser's native :hover state
+// mid-hover, which is what the tooltip's visibility depends on (see
+// style.css), and made it flicker. Skipping the rebuild when nothing in the
+// shelf actually changed keeps the hovered card's DOM node (and its open
+// tooltip) in place.
+let lastRenderKey = '';
+
 export function renderShelf(
   container: HTMLElement,
   ingredients: IIngredient[],
   shelfStock: Record<string, number>,
   isShelfBlocked: boolean,
 ): void {
+  const renderKey = JSON.stringify({
+    ids: ingredients.map((ingredient) => ingredient.id),
+    stock: ingredients.map((ingredient) => getStock(shelfStock, ingredient.id)),
+    isShelfBlocked,
+  });
+
+  if (renderKey === lastRenderKey) {
+    return;
+  }
+
+  lastRenderKey = renderKey;
+
   const cards = ingredients.map((ingredient) =>
     createCard(ingredient, getStock(shelfStock, ingredient.id), isShelfBlocked),
   );
