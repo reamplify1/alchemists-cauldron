@@ -76,7 +76,29 @@ export function createGameScreen(): IGameScreen {
     <section class="recipe" aria-labelledby="recipe-title">
       <h2 class="section-title" id="recipe-title">Recipe</h2>
       <p class="recipe__name"></p>
-      <ul class="recipe__ranges"></ul>
+      <ul class="recipe__ranges">
+        <li class="recipe__range-item" data-parameter="temperature">
+          <p class="recipe__range-label"></p>
+          <div class="parameter-bar">
+            <div class="parameter-bar__zone"></div>
+            <div class="parameter-bar__fill"></div>
+          </div>
+        </li>
+        <li class="recipe__range-item" data-parameter="density">
+          <p class="recipe__range-label"></p>
+          <div class="parameter-bar">
+            <div class="parameter-bar__zone"></div>
+            <div class="parameter-bar__fill"></div>
+          </div>
+        </li>
+        <li class="recipe__range-item" data-parameter="magicPower">
+          <p class="recipe__range-label"></p>
+          <div class="parameter-bar">
+            <div class="parameter-bar__zone"></div>
+            <div class="parameter-bar__fill"></div>
+          </div>
+        </li>
+      </ul>
       <p class="recipe__counter"></p>
       <div class="recipe__actions">
         <button type="button" class="button button--start">Start Game</button>
