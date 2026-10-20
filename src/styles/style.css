@@ -456,13 +456,58 @@ body {
   text-align: center;
 }
 
-.ingredient-card__stats {
+/* US 3.2: ingredient tooltip, shown on hover/focus instead of printing the
+   numbers on the card itself. Hidden by default (opacity + pointer-events,
+   not "display: none", so its size is always measurable if ever needed). */
+.ingredient-card__tooltip {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 8px;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  max-width: 180px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-background);
   color: var(--color-text-muted);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease;
+}
+
+.ingredient-card:hover .ingredient-card__tooltip,
+.ingredient-card:focus-visible .ingredient-card__tooltip {
+  opacity: 1;
+}
+
+/* Opens to the left instead of the right, when the card is near the right
+   edge of the screen. */
+.ingredient-card__tooltip.tooltip--left {
+  left: auto;
+  right: 0;
+}
+
+/* Opens upward instead of downward, when the card is near the bottom edge
+   of the screen. */
+.ingredient-card__tooltip.tooltip--up {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+/* Tooltips must never show while paused, even if a card is still hovered
+   or focused underneath the blurred, non-interactive play field. */
+.game--paused .ingredient-card__tooltip {
+  opacity: 0;
 }
 
 /* Cauldron */
