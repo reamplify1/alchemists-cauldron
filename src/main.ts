@@ -253,6 +253,72 @@ function handlePourOutClick(screen: IGameScreen): void {
   render(screen);
 }
 
+function handlePauseClick(screen: IGameScreen): void {
+  pauseGame();
+  render(screen);
+}
+
+// Mirrors the Brew button's own disabled check (see render()), so pressing
+// the shortcut with an empty cauldron does nothing instead of triggering a
+// misleading "failed brew" animation for a brew that never happened.
+function handleBrewShortcut(screen: IGameScreen): void {
+  if (canBrew()) {
+    handleBrewClick(screen);
+  }
+}
+
+// Mirrors the Pour Out button's own disabled check, for the same reason.
+function handlePourOutShortcut(screen: IGameScreen): void {
+  if (canPourOut()) {
+    handlePourOutClick(screen);
+  }
+}
+
+// True while the keyboard event's target is a text input, a textarea, or
+// any other editable element — typing a leaderboard name must never be
+// hijacked by a game shortcut (see US 3.6).
+function isTypingInField(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    (target instanceof HTMLElement && target.isContentEditable)
+  );
+}
+
+// US 3.6: keyboard shortcuts for the active game flow. Kept small and
+// explicit on purpose (hint 3), and deliberately does not map Enter or
+// Space — those already work on whichever real button is focused, the
+// normal browser way (hint 4), so this map only adds extra shortcuts on
+// top of that, it never replaces it.
+const KEY_ACTIONS: Record<string, (screen: IGameScreen) => void> = {
+  b: handleBrewShortcut,
+  o: handlePourOutShortcut,
+  p: handlePauseClick,
+  Escape: handlePauseClick,
+};
+
+// The single keyboard handler for the whole game, gated by the current
+// game state (hint: keep it in one place). Shortcuts only ever run while a
+// run is actually in progress — the start screen, the pause dialog and the
+// Game Over screen all fall through here with their normal browser
+// keyboard behavior untouched, exactly like a menu/paused/game-over return
+// would (hints 1-2).
+function handleGameKeyDown(event: KeyboardEvent, screen: IGameScreen): void {
+  if (gameState.status !== 'playing') {
+    return;
+  }
+
+  if (isTypingInField(event.target) || event.ctrlKey || event.metaKey || event.altKey) {
+    return;
+  }
+
+  // Shift+B arrives as "B", not "b" — normalize single-character keys so
+  // the small key map above only has to list the lowercase letter once.
+  const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+  const action = KEY_ACTIONS[key];
+  action?.(screen);
+}
+
 function handleSaveScoreClick(screen: IGameScreen): void {
   if (saveScore(screen.nameInput.value)) {
     screen.nameInput.value = '';
@@ -308,8 +374,7 @@ function startApp(): void {
     handleStartClick(screen);
   });
   screen.pauseButton.addEventListener('click', () => {
-    pauseGame();
-    render(screen);
+    handlePauseClick(screen);
   });
   screen.resumeButton.addEventListener('click', () => {
     resumeGame();
@@ -392,6 +457,13 @@ function startApp(): void {
       pauseGame();
       render(screen);
     }
+  });
+
+  // US 3.6: the one keyboard handler for the whole game (see
+  // handleGameKeyDown for why it is safe to attach this globally instead
+  // of only while playing).
+  document.addEventListener('keydown', (event) => {
+    handleGameKeyDown(event, screen);
   });
 
   setInterval(() => {
