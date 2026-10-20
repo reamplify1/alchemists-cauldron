@@ -50,6 +50,34 @@ body {
   text-align: center;
 }
 
+/* US 3.5: short screen shake on a failed brew (triggered from main.ts). */
+.game--shake {
+  animation: screen-shake 0.4s ease-in-out;
+}
+
+@keyframes screen-shake {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+
+  20%,
+  80% {
+    transform: translateX(4px);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translateX(-8px);
+  }
+
+  40%,
+  60% {
+    transform: translateX(8px);
+  }
+}
+
 .section-title {
   margin: 0 0 var(--gap);
   font-size: 1.25rem;
@@ -328,11 +356,56 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4px 16px;
+  gap: 8px 20px;
   margin: 0;
   padding: 0;
   list-style: none;
   color: var(--color-text-muted);
+}
+
+.recipe__range-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.recipe__range-label {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* US 3.5: current-value bar for one cauldron stat, with a green "target
+   zone" showing where the active recipe (widened by tolerance) accepts. */
+.parameter-bar {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background-color: var(--color-surface-hover);
+  overflow: hidden;
+}
+
+.parameter-bar__zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background-color: var(--color-accent);
+  box-shadow: 0 0 8px 2px var(--color-accent);
+  border-radius: 999px;
+}
+
+.parameter-bar__fill {
+  position: absolute;
+  top: -3px;
+  width: 4px;
+  height: 16px;
+  background-color: var(--color-text);
+  border-radius: 2px;
+  transform: translateX(-50%);
+  /* The one CSS line that makes the marker glide to its new position
+     instead of jumping — see ui/recipe.ts for why the element itself is
+     never recreated. */
+  transition: left 0.25s ease;
 }
 
 .recipe__counter {
@@ -525,6 +598,44 @@ body {
   background-color: var(--color-surface-hover);
 }
 
+/* US 3.5: a correct brew pulses the cauldron green once. */
+.cauldron--success {
+  animation: brew-success 0.6s ease-out;
+}
+
+@keyframes brew-success {
+  0% {
+    box-shadow: 0 0 0 0 var(--color-accent);
+  }
+
+  40% {
+    box-shadow: 0 0 26px 10px var(--color-accent);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* US 3.5: a wrong brew flashes red once, like a small explosion. */
+.cauldron--fail {
+  animation: brew-explosion 0.5s ease-out;
+}
+
+@keyframes brew-explosion {
+  0% {
+    box-shadow: 0 0 0 0 var(--color-feather);
+  }
+
+  35% {
+    box-shadow: 0 0 32px 14px var(--color-feather);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
 .cauldron__list {
   display: flex;
   flex-wrap: wrap;
@@ -547,6 +658,33 @@ body {
   display: block;
   width: 24px;
   height: 24px;
+  /* US 3.5: gentle bobbing so ingredients look like they float in the
+     cauldron. Each item gets a different negative delay below, so they
+     are not all bobbing in lockstep. */
+  animation: ingredient-float 2.4s ease-in-out infinite;
+}
+
+@keyframes ingredient-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.cauldron__item:nth-child(2n) .cauldron__icon {
+  animation-delay: -0.6s;
+}
+
+.cauldron__item:nth-child(3n) .cauldron__icon {
+  animation-delay: -1.2s;
+}
+
+.cauldron__item:nth-child(4n) .cauldron__icon {
+  animation-delay: -1.8s;
 }
 
 .cauldron__empty {
