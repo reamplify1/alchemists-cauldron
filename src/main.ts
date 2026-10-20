@@ -10,6 +10,7 @@ import {
   continueGame,
   exitToMenu,
   gameState,
+  getCauldronValues,
   getDifficulty,
   getSettings,
   getShelfIngredients,
@@ -71,6 +72,8 @@ function render(screen: IGameScreen): void {
       counter: screen.recipeCounter,
     },
     gameState.activeRecipe,
+    getCauldronValues(),
+    settings.tolerance,
     gameState.cauldronIngredients.length,
     settings.maxCauldronSize,
   );
@@ -211,8 +214,37 @@ function handleStartClick(screen: IGameScreen): void {
   render(screen);
 }
 
+// Restarts a one-shot CSS animation class, even if it is already playing
+// from a moment ago, by forcing the browser to notice the class was
+// removed before adding it back (see US 3.5). The class removes itself
+// once its animation finishes, via a one-time 'animationend' listener —
+// no setInterval/setTimeout involved, and the animation's timing itself
+// lives entirely in style.css.
+function triggerAnimation(element: HTMLElement, className: string): void {
+  element.classList.remove(className);
+  // Reading offsetWidth forces the browser to apply the removal above
+  // before the class is added back on the next line, so the animation
+  // restarts even if it was still running.
+  void element.offsetWidth;
+  element.classList.add(className);
+
+  element.addEventListener(
+    'animationend',
+    () => {
+      element.classList.remove(className);
+    },
+    { once: true },
+  );
+}
+
 function handleBrewClick(screen: IGameScreen): void {
-  brew();
+  const success = brew();
+  triggerAnimation(screen.cauldronSection, success ? 'cauldron--success' : 'cauldron--fail');
+
+  if (!success) {
+    triggerAnimation(screen.root, 'game--shake');
+  }
+
   render(screen);
 }
 
