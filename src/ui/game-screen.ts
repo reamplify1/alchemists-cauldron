@@ -6,6 +6,7 @@ export interface IGameScreen {
   recipeRanges: HTMLElement;
   recipeCounter: HTMLElement;
   startButton: HTMLButtonElement;
+  continueButton: HTMLButtonElement;
   leaderboardButton: HTMLButtonElement;
   helpButton: HTMLButtonElement;
   settingsButton: HTMLButtonElement;
@@ -77,6 +78,7 @@ export function createGameScreen(): IGameScreen {
       <p class="recipe__counter"></p>
       <div class="recipe__actions">
         <button type="button" class="button button--start">Start Game</button>
+        <button type="button" class="button button--continue" hidden>Continue Game</button>
         <button type="button" class="button button--settings">Settings</button>
         <button type="button" class="button button--help">Help</button>
         <button type="button" class="button button--leaderboard">Leaderboard</button>
@@ -224,6 +226,7 @@ export function createGameScreen(): IGameScreen {
     recipeRanges: getElement(root, '.recipe__ranges'),
     recipeCounter: getElement(root, '.recipe__counter'),
     startButton: getElement<HTMLButtonElement>(root, '.button--start'),
+    continueButton: getElement<HTMLButtonElement>(root, '.button--continue'),
     leaderboardButton: getElement<HTMLButtonElement>(root, '.button--leaderboard'),
     helpButton: getElement<HTMLButtonElement>(root, '.button--help'),
     settingsButton: getElement<HTMLButtonElement>(root, '.button--settings'),

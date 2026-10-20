@@ -43,6 +43,19 @@ export interface ILeaderboardEntry {
   date: number;
 }
 
+// The auto-saved unfinished game (see storage/save-game.ts). Only a
+// "playing" or "paused" game is ever saved or offered as Continue Game.
+export interface ISavedGame {
+  difficulty: Difficulty;
+  score: number;
+  timeLeft: number;
+  lives: number;
+  activeRecipe: IRecipe | null;
+  cauldronIngredients: IIngredient[];
+  shelfStock: Record<string, number>;
+  status: Extract<GameStatus, 'playing' | 'paused'>;
+}
+
 export interface IGameState {
   status: GameStatus;
   score: number;
