@@ -6,11 +6,13 @@ import {
   brew,
   canBrew,
   canSaveScore,
+  continueGame,
   exitToMenu,
   gameState,
   getDifficulty,
   getSettings,
   getShelfIngredients,
+  hasContinuableSave,
   pauseGame,
   resumeGame,
   saveScore,
@@ -128,6 +130,10 @@ function render(screen: IGameScreen): void {
   screen.root.classList.toggle('game--paused', isPaused);
 
   screen.startButton.hidden = !isMenu;
+  // Only offered on the start screen, and only while a valid unfinished
+  // save actually exists (hasContinuableSave reads localStorage, so it is
+  // skipped outside the menu thanks to the short-circuit here).
+  screen.continueButton.hidden = !(isMenu && hasContinuableSave());
   screen.leaderboardButton.hidden = !isMenu;
   screen.helpButton.hidden = !isMenu;
   screen.settingsButton.hidden = !isMenu;
@@ -188,6 +194,12 @@ function startApp(): void {
   });
   screen.startButton.addEventListener('click', () => {
     handleStartClick(screen);
+  });
+  screen.continueButton.addEventListener('click', () => {
+    if (continueGame()) {
+      nameErrorMessage = '';
+      render(screen);
+    }
   });
   screen.brewButton.addEventListener('click', () => {
     handleBrewClick(screen);
