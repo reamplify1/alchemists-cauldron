@@ -12,6 +12,7 @@ export interface IGameScreen {
   helpButton: HTMLButtonElement;
   settingsButton: HTMLButtonElement;
   brewButton: HTMLButtonElement;
+  pourOutButton: HTMLButtonElement;
   pauseButton: HTMLButtonElement;
   statusScore: HTMLElement;
   statusLives: HTMLElement;
@@ -84,6 +85,7 @@ export function createGameScreen(): IGameScreen {
         <button type="button" class="button button--help">Help</button>
         <button type="button" class="button button--leaderboard">Leaderboard</button>
         <button type="button" class="button button--brew" hidden>Brew</button>
+        <button type="button" class="button button--pour-out" hidden>Pour Out</button>
         <button type="button" class="button button--pause" hidden>Pause</button>
       </div>
     </section>
@@ -233,6 +235,7 @@ export function createGameScreen(): IGameScreen {
     helpButton: getElement<HTMLButtonElement>(root, '.button--help'),
     settingsButton: getElement<HTMLButtonElement>(root, '.button--settings'),
     brewButton: getElement<HTMLButtonElement>(root, '.button--brew'),
+    pourOutButton: getElement<HTMLButtonElement>(root, '.button--pour-out'),
     pauseButton: getElement<HTMLButtonElement>(root, '.button--pause'),
     statusScore: getElement(root, '.status__score'),
     statusLives: getElement(root, '.status__lives'),
