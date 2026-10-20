@@ -7,6 +7,8 @@ export interface IGameScreen {
   recipeCounter: HTMLElement;
   startButton: HTMLButtonElement;
   leaderboardButton: HTMLButtonElement;
+  helpButton: HTMLButtonElement;
+  settingsButton: HTMLButtonElement;
   brewButton: HTMLButtonElement;
   pauseButton: HTMLButtonElement;
   statusScore: HTMLElement;
@@ -34,6 +36,13 @@ export interface IGameScreen {
   clearConfirmDialog: HTMLElement;
   confirmClearButton: HTMLButtonElement;
   cancelClearButton: HTMLButtonElement;
+  rulesDialog: HTMLElement;
+  closeRulesButton: HTMLButtonElement;
+  difficultyPanel: HTMLElement;
+  easyButton: HTMLButtonElement;
+  mediumButton: HTMLButtonElement;
+  hardButton: HTMLButtonElement;
+  closeDifficultyButton: HTMLButtonElement;
 }
 
 function getElement<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: string): T {
@@ -68,6 +77,8 @@ export function createGameScreen(): IGameScreen {
       <p class="recipe__counter"></p>
       <div class="recipe__actions">
         <button type="button" class="button button--start">Start Game</button>
+        <button type="button" class="button button--settings">Settings</button>
+        <button type="button" class="button button--help">Help</button>
         <button type="button" class="button button--leaderboard">Leaderboard</button>
         <button type="button" class="button button--brew" hidden>Brew</button>
         <button type="button" class="button button--pause" hidden>Pause</button>
@@ -136,6 +147,7 @@ export function createGameScreen(): IGameScreen {
               <th scope="col">Name</th>
               <th scope="col">Score</th>
               <th scope="col">Date</th>
+              <th scope="col">Difficulty</th>
             </tr>
           </thead>
           <tbody class="leaderboard__body"></tbody>
@@ -157,6 +169,51 @@ export function createGameScreen(): IGameScreen {
         </div>
       </div>
     </div>
+
+    <div class="dialog rules" hidden>
+      <div class="dialog__card dialog__card--wide">
+        <h2 class="dialog__title">How to Play</h2>
+        <div class="rules__text">
+          <p>
+            Mix ingredients from the shelf into the cauldron to bring Temperature, Density and
+            Magic Power into the active recipe's ranges, then click Brew.
+          </p>
+          <p>A correct brew scores points and adds a time bonus. A wrong brew costs one life.</p>
+          <p>
+            The game ends when the time runs out, you run out of lives, or you run out of
+            ingredients.
+          </p>
+          <p>
+            Difficulty (Easy / Medium / Hard) changes the shelf size, cauldron limit, time,
+            tolerance, lives and score per brew. Pick it from Settings before starting.
+          </p>
+          <p>
+            Pause freezes the timer; the game also pauses automatically when you switch tabs.
+          </p>
+          <p>Your best 10 scores per difficulty are saved on this device.</p>
+        </div>
+        <div class="dialog__actions">
+          <button type="button" class="button button--close-rules">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog difficulty-panel" hidden>
+      <div class="dialog__card dialog__card--wide">
+        <h2 class="dialog__title">Choose Difficulty</h2>
+        <div class="difficulty-panel__list">
+          <button type="button" class="button difficulty-button button--difficulty-easy"></button>
+          <button
+            type="button"
+            class="button difficulty-button button--difficulty-medium"
+          ></button>
+          <button type="button" class="button difficulty-button button--difficulty-hard"></button>
+        </div>
+        <div class="dialog__actions">
+          <button type="button" class="button button--close-difficulty">Close</button>
+        </div>
+      </div>
+    </div>
   `;
 
   return {
@@ -168,6 +225,8 @@ export function createGameScreen(): IGameScreen {
     recipeCounter: getElement(root, '.recipe__counter'),
     startButton: getElement<HTMLButtonElement>(root, '.button--start'),
     leaderboardButton: getElement<HTMLButtonElement>(root, '.button--leaderboard'),
+    helpButton: getElement<HTMLButtonElement>(root, '.button--help'),
+    settingsButton: getElement<HTMLButtonElement>(root, '.button--settings'),
     brewButton: getElement<HTMLButtonElement>(root, '.button--brew'),
     pauseButton: getElement<HTMLButtonElement>(root, '.button--pause'),
     statusScore: getElement(root, '.status__score'),
@@ -195,5 +254,12 @@ export function createGameScreen(): IGameScreen {
     clearConfirmDialog: getElement(root, '.clear-confirm'),
     confirmClearButton: getElement<HTMLButtonElement>(root, '.button--confirm-clear'),
     cancelClearButton: getElement<HTMLButtonElement>(root, '.button--cancel-clear'),
+    rulesDialog: getElement(root, '.rules'),
+    closeRulesButton: getElement<HTMLButtonElement>(root, '.button--close-rules'),
+    difficultyPanel: getElement(root, '.difficulty-panel'),
+    easyButton: getElement<HTMLButtonElement>(root, '.button--difficulty-easy'),
+    mediumButton: getElement<HTMLButtonElement>(root, '.button--difficulty-medium'),
+    hardButton: getElement<HTMLButtonElement>(root, '.button--difficulty-hard'),
+    closeDifficultyButton: getElement<HTMLButtonElement>(root, '.button--close-difficulty'),
   };
 }

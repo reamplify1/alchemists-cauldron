@@ -8,16 +8,19 @@ import {
   canSaveScore,
   exitToMenu,
   gameState,
+  getDifficulty,
   getSettings,
   getShelfIngredients,
   pauseGame,
   resumeGame,
   saveScore,
+  setDifficulty,
   startNewGame,
   tick,
 } from './state/game-state';
 import { clearLeaderboard, loadLeaderboard } from './storage/leaderboard';
 import { renderCauldron } from './ui/cauldron';
+import { renderDifficultyPanel } from './ui/difficulty-panel';
 import { renderGameOver } from './ui/game-over';
 import { createGameScreen, type IGameScreen } from './ui/game-screen';
 import { renderLeaderboard } from './ui/leaderboard';
@@ -40,6 +43,8 @@ let nameErrorMessage = '';
 // open. Also UI-only state: it has no effect on the game itself.
 let isLeaderboardOpen = false;
 let isClearConfirmOpen = false;
+let isRulesOpen = false;
+let isDifficultyPanelOpen = false;
 
 function render(screen: IGameScreen): void {
   const settings = getSettings();
@@ -102,9 +107,21 @@ function render(screen: IGameScreen): void {
       empty: screen.leaderboardEmpty,
     },
     isLeaderboardOpen,
-    sortLeaderboard(loadLeaderboard()),
+    sortLeaderboard(loadLeaderboard(getDifficulty())),
+    getDifficulty(),
   );
   screen.clearConfirmDialog.hidden = !isClearConfirmOpen;
+  screen.rulesDialog.hidden = !isRulesOpen;
+  renderDifficultyPanel(
+    {
+      container: screen.difficultyPanel,
+      easyButton: screen.easyButton,
+      mediumButton: screen.mediumButton,
+      hardButton: screen.hardButton,
+    },
+    isDifficultyPanelOpen,
+    getDifficulty(),
+  );
 
   // Blurs the recipe/shelf/cauldron while paused, so the player cannot plan
   // moves (see .game--paused in style.css).
@@ -112,6 +129,10 @@ function render(screen: IGameScreen): void {
 
   screen.startButton.hidden = !isMenu;
   screen.leaderboardButton.hidden = !isMenu;
+  screen.helpButton.hidden = !isMenu;
+  screen.settingsButton.hidden = !isMenu;
+  // No life icons on the start screen (see US 2.1).
+  screen.statusLives.hidden = isMenu;
   screen.brewButton.hidden = !isPlaying;
   screen.brewButton.disabled = !canBrew();
   screen.pauseButton.hidden = !isPlaying;
@@ -218,8 +239,38 @@ function startApp(): void {
     render(screen);
   });
   screen.confirmClearButton.addEventListener('click', () => {
-    clearLeaderboard();
+    clearLeaderboard(getDifficulty());
     isClearConfirmOpen = false;
+    render(screen);
+  });
+
+  screen.helpButton.addEventListener('click', () => {
+    isRulesOpen = true;
+    render(screen);
+  });
+  screen.closeRulesButton.addEventListener('click', () => {
+    isRulesOpen = false;
+    render(screen);
+  });
+
+  screen.settingsButton.addEventListener('click', () => {
+    isDifficultyPanelOpen = true;
+    render(screen);
+  });
+  screen.closeDifficultyButton.addEventListener('click', () => {
+    isDifficultyPanelOpen = false;
+    render(screen);
+  });
+  screen.easyButton.addEventListener('click', () => {
+    setDifficulty('easy');
+    render(screen);
+  });
+  screen.mediumButton.addEventListener('click', () => {
+    setDifficulty('medium');
+    render(screen);
+  });
+  screen.hardButton.addEventListener('click', () => {
+    setDifficulty('hard');
     render(screen);
   });
 

@@ -53,6 +53,16 @@ export function getDifficulty(): Difficulty {
   return gameState.difficulty ?? LEVEL_1_DIFFICULTY;
 }
 
+// The difficulty can only be changed from the start screen, never during a
+// running (or paused, or just-finished) game.
+export function setDifficulty(difficulty: Difficulty): void {
+  if (gameState.status !== 'menu') {
+    return;
+  }
+
+  gameState.difficulty = difficulty;
+}
+
 export function getSettings(): IDifficultySettings {
   return DIFFICULTY_SETTINGS[getDifficulty()];
 }
@@ -236,7 +246,7 @@ export function canSaveScore(): boolean {
   return (
     gameState.status === 'game-over' &&
     !gameState.scoreSaved &&
-    qualifiesForLeaderboard(loadLeaderboard(), gameState.score)
+    qualifiesForLeaderboard(loadLeaderboard(getDifficulty()), gameState.score)
   );
 }
 
@@ -260,7 +270,8 @@ export function saveScore(name: string): boolean {
     date: Date.now(),
   };
 
-  saveLeaderboard(insertLeaderboardEntry(loadLeaderboard(), entry));
+  const difficulty = getDifficulty();
+  saveLeaderboard(difficulty, insertLeaderboardEntry(loadLeaderboard(difficulty), entry));
   gameState.scoreSaved = true;
   return true;
 }

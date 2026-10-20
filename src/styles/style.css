@@ -261,6 +261,39 @@ body {
   color: var(--color-text-muted);
 }
 
+/* How to Play */
+
+.rules__text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  color: var(--color-text-muted);
+  text-align: left;
+}
+
+.rules__text p {
+  margin: 0;
+}
+
+/* Difficulty panel */
+
+.difficulty-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.difficulty-button {
+  white-space: normal;
+}
+
+/* The currently chosen difficulty, highlighted among the three choices. */
+.difficulty-button--selected {
+  background-color: var(--color-warning);
+}
+
 /* While paused, blur the play field so the player cannot plan moves. The
    dialog itself is a sibling, so it is never blurred. */
 .game--paused .recipe,
