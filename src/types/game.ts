@@ -80,7 +80,21 @@ export interface IGameState {
 export interface IReaction {
   id: string;
   name: string;
+  // The lowest difficulty this reaction is active on: 'medium' reactions
+  // also run on Hard, 'hard' reactions only run on Hard (see US 3.3).
   difficulty: Exclude<Difficulty, 'easy'>;
+  // Whether this reaction's combination is currently present in the
+  // cauldron. Checked against the raw ingredient list, not the computed
+  // values, so a stat-threshold reaction recomputes its own totals.
   isActive: (ingredients: IIngredient[]) => boolean;
+  // The reaction's effect on the cauldron's current values. Reapplied fresh
+  // every time the values are needed, for as long as isActive() stays true
+  // — this is not a one-time change.
   apply: (values: ICauldronValues) => ICauldronValues;
+  // One-time side effects, applied only once: the moment the reaction turns
+  // from inactive to active (not reapplied while it stays active, and not
+  // part of apply() above). All optional — most reactions only need apply().
+  timeDeltaSeconds?: number;
+  livesDelta?: number;
+  clearsCauldron?: boolean;
 }
