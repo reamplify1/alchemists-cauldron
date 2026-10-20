@@ -16,6 +16,7 @@ import {
 import { pickRandomRecipe } from '../logic/recipe-generator';
 import { createStock, getStock } from '../logic/stock';
 import { loadLeaderboard, saveLeaderboard } from '../storage/leaderboard';
+import { clearSave, loadGame, saveGame } from '../storage/save-game';
 import type {
   Difficulty,
   GameOverReason,
@@ -53,6 +54,16 @@ export function getDifficulty(): Difficulty {
   return gameState.difficulty ?? LEVEL_1_DIFFICULTY;
 }
 
+// The difficulty can only be changed from the start screen, never during a
+// running (or paused, or just-finished) game.
+export function setDifficulty(difficulty: Difficulty): void {
+  if (gameState.status !== 'menu') {
+    return;
+  }
+
+  gameState.difficulty = difficulty;
+}
+
 export function getSettings(): IDifficultySettings {
   return DIFFICULTY_SETTINGS[getDifficulty()];
 }
@@ -85,6 +96,29 @@ function refreshTimeLeft(): void {
 function endGame(reason: GameOverReason): void {
   gameState.status = 'game-over';
   gameState.gameOverReason = reason;
+  // A finished game is never offered as Continue Game.
+  clearSave();
+}
+
+// Writes the auto-save. A no-op outside "playing"/"paused" (e.g. right
+// after endGame already cleared it), so callers can call this
+// unconditionally after any state change instead of tracking by hand
+// whether this particular change was worth saving.
+function persistGame(): void {
+  if (gameState.status !== 'playing' && gameState.status !== 'paused') {
+    return;
+  }
+
+  saveGame({
+    difficulty: getDifficulty(),
+    score: gameState.score,
+    timeLeft: gameState.timeLeft,
+    lives: gameState.lives,
+    activeRecipe: gameState.activeRecipe,
+    cauldronIngredients: gameState.cauldronIngredients,
+    shelfStock: gameState.shelfStock,
+    status: gameState.status,
+  });
 }
 
 // True once every shelf slot is empty (stock 0) and the cauldron is empty
@@ -117,6 +151,8 @@ export function startNewGame(): void {
   gameState.cauldronIngredients = [];
   gameState.activeRecipe = pickRandomRecipe(RECIPES, getDifficulty());
   setTimeLeft(settings.startingTimeSeconds);
+  // Overwrites any old unfinished save with this new game.
+  persistGame();
 }
 
 // Freezes the countdown and blocks gameplay actions (addIngredient and brew
@@ -128,6 +164,7 @@ export function pauseGame(): void {
 
   refreshTimeLeft();
   gameState.status = 'paused';
+  persistGame();
 }
 
 // Continues the same game from where it was paused: the timer resumes from
@@ -139,10 +176,12 @@ export function resumeGame(): void {
 
   setTimeLeft(gameState.timeLeft);
   gameState.status = 'playing';
+  persistGame();
 }
 
 // Leaves the current run (paused or not) and returns to the start screen.
 export function exitToMenu(): void {
+  clearSave();
   Object.assign(gameState, createInitialState());
 }
 
@@ -159,6 +198,10 @@ export function tick(): void {
   if (gameState.timeLeft <= 0) {
     endGame('time');
   }
+
+  // Keeps timeLeft fresh in the save while playing (a no-op once endGame
+  // just cleared it above).
+  persistGame();
 }
 
 // Returns true when the ingredient was added.
@@ -186,6 +229,7 @@ export function addIngredient(ingredientId: string): boolean {
 
   gameState.cauldronIngredients = result.cauldronIngredients;
   gameState.shelfStock = result.shelfStock;
+  persistGame();
   return true;
 }
 
@@ -226,7 +270,45 @@ export function brew(): boolean {
   }
 
   checkOutOfIngredients();
+  persistGame();
   return success;
+}
+
+// True only while the start screen has a valid, unfinished save to offer
+// as Continue Game.
+export function hasContinuableSave(): boolean {
+  return loadGame() !== null;
+}
+
+// Restores the saved game and opens it paused (not however it was saved),
+// so the player consciously resumes rather than being dropped straight
+// into a running countdown. The saved shelf stock is restored as-is, never
+// re-rolled. Returns false (and changes nothing) when there is no valid
+// save or a game is already running.
+export function continueGame(): boolean {
+  if (gameState.status !== 'menu') {
+    return false;
+  }
+
+  const save = loadGame();
+
+  if (!save) {
+    return false;
+  }
+
+  gameState.difficulty = save.difficulty;
+  gameState.score = save.score;
+  gameState.timeLeft = save.timeLeft;
+  gameState.lives = save.lives;
+  gameState.activeRecipe = save.activeRecipe;
+  gameState.cauldronIngredients = save.cauldronIngredients;
+  gameState.shelfStock = save.shelfStock;
+  gameState.gameOverReason = undefined;
+  gameState.scoreSaved = false;
+  gameState.status = 'paused';
+  persistGame();
+
+  return true;
 }
 
 // True while the current game-over score still qualifies for the Top 10
@@ -236,7 +318,7 @@ export function canSaveScore(): boolean {
   return (
     gameState.status === 'game-over' &&
     !gameState.scoreSaved &&
-    qualifiesForLeaderboard(loadLeaderboard(), gameState.score)
+    qualifiesForLeaderboard(loadLeaderboard(getDifficulty()), gameState.score)
   );
 }
 
@@ -260,7 +342,8 @@ export function saveScore(name: string): boolean {
     date: Date.now(),
   };
 
-  saveLeaderboard(insertLeaderboardEntry(loadLeaderboard(), entry));
+  const difficulty = getDifficulty();
+  saveLeaderboard(difficulty, insertLeaderboardEntry(loadLeaderboard(difficulty), entry));
   gameState.scoreSaved = true;
   return true;
 }
