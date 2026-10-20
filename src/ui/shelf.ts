@@ -27,6 +27,8 @@ function createCard(
   card.dataset.ingredientId = ingredient.id;
   // A disabled button cannot be clicked or focused.
   card.disabled = isEmpty || isShelfBlocked;
+  // Out of stock (or shelf blocked) ingredients cannot be dragged either.
+  card.draggable = !isEmpty && !isShelfBlocked;
   card.classList.toggle('ingredient-card--empty', isEmpty);
   card.setAttribute(
     'aria-label',

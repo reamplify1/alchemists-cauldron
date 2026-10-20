@@ -21,7 +21,7 @@ import {
   tick,
 } from './state/game-state';
 import { clearLeaderboard, loadLeaderboard } from './storage/leaderboard';
-import { renderCauldron } from './ui/cauldron';
+import { renderCauldron, setCauldronDropHighlight } from './ui/cauldron';
 import { renderDifficultyPanel } from './ui/difficulty-panel';
 import { renderGameOver } from './ui/game-over';
 import { createGameScreen, type IGameScreen } from './ui/game-screen';
@@ -157,6 +157,50 @@ function handleShelfClick(event: MouseEvent, screen: IGameScreen): void {
   }
 }
 
+// Puts the dragged ingredient's id into the drag data, same id the click
+// flow already uses. Cards with no stock (or a blocked shelf) are not
+// draggable at all (see ui/shelf.ts), so there is nothing to guard here.
+function handleShelfDragStart(event: DragEvent): void {
+  if (!(event.target instanceof Element) || !event.dataTransfer) {
+    return;
+  }
+
+  const card = event.target.closest<HTMLButtonElement>('[data-ingredient-id]');
+  const ingredientId = card?.dataset.ingredientId;
+
+  if (!ingredientId) {
+    return;
+  }
+
+  event.dataTransfer.effectAllowed = 'copy';
+  event.dataTransfer.setData('text/plain', ingredientId);
+}
+
+// A drop is rejected by default unless dragover calls preventDefault(), so
+// this is what makes the cauldron a valid drop target in the first place.
+function handleCauldronDragOver(event: DragEvent, screen: IGameScreen): void {
+  event.preventDefault();
+  setCauldronDropHighlight(screen.cauldronSection, true);
+}
+
+function handleCauldronDragLeave(screen: IGameScreen): void {
+  setCauldronDropHighlight(screen.cauldronSection, false);
+}
+
+// Reuses the exact same addIngredient() call as a click, so a drop follows
+// the same rules for free: ignored while paused (status isn't "playing"),
+// ignored when the cauldron is full, ignored when stock is 0.
+function handleCauldronDrop(event: DragEvent, screen: IGameScreen): void {
+  event.preventDefault();
+  setCauldronDropHighlight(screen.cauldronSection, false);
+
+  const ingredientId = event.dataTransfer?.getData('text/plain');
+
+  if (ingredientId && addIngredient(ingredientId)) {
+    render(screen);
+  }
+}
+
 function handleStartClick(screen: IGameScreen): void {
   startNewGame();
   nameErrorMessage = '';
@@ -191,6 +235,18 @@ function startApp(): void {
 
   screen.shelf.addEventListener('click', (event) => {
     handleShelfClick(event, screen);
+  });
+  screen.shelf.addEventListener('dragstart', (event) => {
+    handleShelfDragStart(event);
+  });
+  screen.cauldronSection.addEventListener('dragover', (event) => {
+    handleCauldronDragOver(event, screen);
+  });
+  screen.cauldronSection.addEventListener('dragleave', () => {
+    handleCauldronDragLeave(screen);
+  });
+  screen.cauldronSection.addEventListener('drop', (event) => {
+    handleCauldronDrop(event, screen);
   });
   screen.startButton.addEventListener('click', () => {
     handleStartClick(screen);
