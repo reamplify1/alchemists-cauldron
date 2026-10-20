@@ -1,6 +1,7 @@
 export interface IGameScreen {
   root: HTMLElement;
   shelf: HTMLElement;
+  cauldronSection: HTMLElement;
   cauldronList: HTMLElement;
   recipeName: HTMLElement;
   recipeRanges: HTMLElement;
@@ -221,6 +222,7 @@ export function createGameScreen(): IGameScreen {
   return {
     root,
     shelf: getElement(root, '.shelf__grid'),
+    cauldronSection: getElement(root, '.cauldron'),
     cauldronList: getElement(root, '.cauldron__list'),
     recipeName: getElement(root, '.recipe__name'),
     recipeRanges: getElement(root, '.recipe__ranges'),

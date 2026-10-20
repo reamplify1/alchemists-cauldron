@@ -413,6 +413,12 @@ body {
   outline-offset: 2px;
 }
 
+/* A draggable card (has stock, shelf not blocked) shows a "grab" cursor as
+   an extra hint, on top of the normal click cursor. */
+.ingredient-card[draggable='true'] {
+  cursor: grab;
+}
+
 /* Shelf is blocked because the cauldron is full. */
 .ingredient-card:disabled {
   opacity: var(--opacity-blocked);
@@ -466,6 +472,12 @@ body {
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
   background-color: var(--color-surface);
+}
+
+/* US 3.1: highlighted while a dragged ingredient is over the cauldron. */
+.cauldron--drag-over {
+  border-color: var(--color-accent);
+  background-color: var(--color-surface-hover);
 }
 
 .cauldron__list {

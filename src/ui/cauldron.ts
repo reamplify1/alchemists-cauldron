@@ -30,3 +30,11 @@ export function renderCauldron(list: HTMLElement, ingredients: IIngredient[]): v
   // Same order as the ingredients were added.
   list.replaceChildren(...ingredients.map((ingredient) => createItem(ingredient)));
 }
+
+// Toggles the single CSS class that highlights the cauldron as a drop zone
+// while a drag is over it (see US 3.1). Called directly from the drag event
+// handlers in main.ts, not from render(), so it is not undone by the next
+// periodic re-render.
+export function setCauldronDropHighlight(section: HTMLElement, isActive: boolean): void {
+  section.classList.toggle('cauldron--drag-over', isActive);
+}
