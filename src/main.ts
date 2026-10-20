@@ -5,6 +5,7 @@ import {
   addIngredient,
   brew,
   canBrew,
+  canPourOut,
   canSaveScore,
   continueGame,
   exitToMenu,
@@ -14,6 +15,7 @@ import {
   getShelfIngredients,
   hasContinuableSave,
   pauseGame,
+  pourOut,
   resumeGame,
   saveScore,
   setDifficulty,
@@ -141,6 +143,8 @@ function render(screen: IGameScreen): void {
   screen.statusLives.hidden = isMenu;
   screen.brewButton.hidden = !isPlaying;
   screen.brewButton.disabled = !canBrew();
+  screen.pourOutButton.hidden = !isPlaying;
+  screen.pourOutButton.disabled = !canPourOut();
   screen.pauseButton.hidden = !isPlaying;
 }
 
@@ -212,6 +216,11 @@ function handleBrewClick(screen: IGameScreen): void {
   render(screen);
 }
 
+function handlePourOutClick(screen: IGameScreen): void {
+  pourOut();
+  render(screen);
+}
+
 function handleSaveScoreClick(screen: IGameScreen): void {
   if (saveScore(screen.nameInput.value)) {
     screen.nameInput.value = '';
@@ -259,6 +268,9 @@ function startApp(): void {
   });
   screen.brewButton.addEventListener('click', () => {
     handleBrewClick(screen);
+  });
+  screen.pourOutButton.addEventListener('click', () => {
+    handlePourOutClick(screen);
   });
   screen.playAgainButton.addEventListener('click', () => {
     handleStartClick(screen);
