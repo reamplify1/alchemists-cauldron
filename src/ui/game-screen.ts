@@ -1,6 +1,7 @@
 export interface IGameScreen {
   root: HTMLElement;
   shelf: HTMLElement;
+  cauldronSection: HTMLElement;
   cauldronList: HTMLElement;
   recipeName: HTMLElement;
   recipeRanges: HTMLElement;
@@ -11,6 +12,7 @@ export interface IGameScreen {
   helpButton: HTMLButtonElement;
   settingsButton: HTMLButtonElement;
   brewButton: HTMLButtonElement;
+  pourOutButton: HTMLButtonElement;
   pauseButton: HTMLButtonElement;
   statusScore: HTMLElement;
   statusLives: HTMLElement;
@@ -74,7 +76,29 @@ export function createGameScreen(): IGameScreen {
     <section class="recipe" aria-labelledby="recipe-title">
       <h2 class="section-title" id="recipe-title">Recipe</h2>
       <p class="recipe__name"></p>
-      <ul class="recipe__ranges"></ul>
+      <ul class="recipe__ranges">
+        <li class="recipe__range-item" data-parameter="temperature">
+          <p class="recipe__range-label"></p>
+          <div class="parameter-bar">
+            <div class="parameter-bar__zone"></div>
+            <div class="parameter-bar__fill"></div>
+          </div>
+        </li>
+        <li class="recipe__range-item" data-parameter="density">
+          <p class="recipe__range-label"></p>
+          <div class="parameter-bar">
+            <div class="parameter-bar__zone"></div>
+            <div class="parameter-bar__fill"></div>
+          </div>
+        </li>
+        <li class="recipe__range-item" data-parameter="magicPower">
+          <p class="recipe__range-label"></p>
+          <div class="parameter-bar">
+            <div class="parameter-bar__zone"></div>
+            <div class="parameter-bar__fill"></div>
+          </div>
+        </li>
+      </ul>
       <p class="recipe__counter"></p>
       <div class="recipe__actions">
         <button type="button" class="button button--start">Start Game</button>
@@ -83,6 +107,7 @@ export function createGameScreen(): IGameScreen {
         <button type="button" class="button button--help">Help</button>
         <button type="button" class="button button--leaderboard">Leaderboard</button>
         <button type="button" class="button button--brew" hidden>Brew</button>
+        <button type="button" class="button button--pour-out" hidden>Pour Out</button>
         <button type="button" class="button button--pause" hidden>Pause</button>
       </div>
     </section>
@@ -221,6 +246,7 @@ export function createGameScreen(): IGameScreen {
   return {
     root,
     shelf: getElement(root, '.shelf__grid'),
+    cauldronSection: getElement(root, '.cauldron'),
     cauldronList: getElement(root, '.cauldron__list'),
     recipeName: getElement(root, '.recipe__name'),
     recipeRanges: getElement(root, '.recipe__ranges'),
@@ -231,6 +257,7 @@ export function createGameScreen(): IGameScreen {
     helpButton: getElement<HTMLButtonElement>(root, '.button--help'),
     settingsButton: getElement<HTMLButtonElement>(root, '.button--settings'),
     brewButton: getElement<HTMLButtonElement>(root, '.button--brew'),
+    pourOutButton: getElement<HTMLButtonElement>(root, '.button--pour-out'),
     pauseButton: getElement<HTMLButtonElement>(root, '.button--pause'),
     statusScore: getElement(root, '.status__score'),
     statusLives: getElement(root, '.status__lives'),

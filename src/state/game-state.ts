@@ -13,6 +13,7 @@ import {
   isValidPlayerName,
   qualifiesForLeaderboard,
 } from '../logic/leaderboard';
+import { applyReactions, getFiredReactions, getReactionsForDifficulty } from '../logic/reactions';
 import { pickRandomRecipe } from '../logic/recipe-generator';
 import { createStock, getStock } from '../logic/stock';
 import { loadLeaderboard, saveLeaderboard } from '../storage/leaderboard';
@@ -38,6 +39,7 @@ export function createInitialState(): IGameState {
     difficulty: LEVEL_1_DIFFICULTY,
     gameOverReason: undefined,
     scoreSaved: false,
+    lastReactionId: null,
   };
 }
 
@@ -49,6 +51,10 @@ export const gameState: IGameState = createInitialState();
 // from this timestamp, never by counting ticks, so the timer stays correct
 // even after the browser tab was in the background for a while.
 let endTimestamp = 0;
+
+// Fixed time cost of the Pour Out action (see US 3.4), same shape as a
+// reaction's one-time timeDeltaSeconds cost.
+const POUR_OUT_TIME_COST_SECONDS = 10;
 
 export function getDifficulty(): Difficulty {
   return gameState.difficulty ?? LEVEL_1_DIFFICULTY;
@@ -73,8 +79,14 @@ export function getShelfIngredients(): IIngredient[] {
   return INGREDIENTS.slice(0, getSettings().shelfSize);
 }
 
+// Raw ingredient sum, with every currently active reaction's effect folded
+// on top (see US 3.3). Recalculated fresh from the ingredient list every
+// time this is called, so a reaction's value change keeps applying for as
+// long as its combination stays in the cauldron.
 export function getCauldronValues(): ICauldronValues {
-  return calculateCauldron(gameState.cauldronIngredients);
+  const reactions = getReactionsForDifficulty(getDifficulty());
+  const baseValues = calculateCauldron(gameState.cauldronIngredients);
+  return applyReactions(baseValues, reactions, gameState.cauldronIngredients);
 }
 
 // Sets a new countdown value and remembers when it will reach 0.
@@ -91,6 +103,29 @@ function refreshTimeLeft(): void {
   }
 
   gameState.timeLeft = Math.max(0, Math.ceil((endTimestamp - Date.now()) / 1000));
+}
+
+// Shifts the timer by the given number of seconds — negative removes time,
+// as a reaction's one-time cost or Pour Out can do. Moves the end timestamp
+// itself (the single source of truth for the countdown), not just the
+// cached timeLeft, so the change is not overwritten by the next
+// recalculation. Can end the game, exactly like the timer reaching 0 on its
+// own.
+function adjustTimeLeft(deltaSeconds: number): void {
+  endTimestamp += deltaSeconds * 1000;
+  refreshTimeLeft();
+
+  if (gameState.timeLeft <= 0) {
+    endGame('time');
+  }
+}
+
+// Empties the cauldron. The ingredients themselves are gone either way —
+// whether the mixture was wrong (brew), reacted away (Volatile Mix), or
+// poured out on purpose (Pour Out, see US 3.4) — none of them go back to
+// the shelf.
+function clearCauldron(): void {
+  gameState.cauldronIngredients = [];
 }
 
 function endGame(reason: GameOverReason): void {
@@ -147,6 +182,7 @@ export function startNewGame(): void {
   gameState.lives = settings.lives;
   gameState.gameOverReason = undefined;
   gameState.scoreSaved = false;
+  gameState.lastReactionId = null;
   gameState.shelfStock = createStock(getShelfIngredients());
   gameState.cauldronIngredients = [];
   gameState.activeRecipe = pickRandomRecipe(RECIPES, getDifficulty());
@@ -204,6 +240,42 @@ export function tick(): void {
   persistGame();
 }
 
+// Applies the one-time side effects (time, lives, clearing the cauldron) of
+// every reaction that just turned on with this add, in table order — not
+// of reactions that were already active before it (see US 3.3). The
+// reactions' own value changes are not applied here: getCauldronValues()
+// above folds those in fresh every time, for as long as each stays active.
+function applyFiredReactions(before: IIngredient[], after: IIngredient[]): void {
+  const reactions = getReactionsForDifficulty(getDifficulty());
+  const fired = getFiredReactions(reactions, before, after);
+
+  for (const reaction of fired) {
+    // A reaction that just ended the game (lives or time running out)
+    // stops the rest of the batch from applying further side effects.
+    if (gameState.status !== 'playing') {
+      return;
+    }
+
+    gameState.lastReactionId = reaction.id;
+
+    if (reaction.clearsCauldron) {
+      clearCauldron();
+    }
+
+    if (reaction.livesDelta) {
+      gameState.lives += reaction.livesDelta;
+
+      if (gameState.lives <= 0) {
+        endGame('lives');
+      }
+    }
+
+    if (reaction.timeDeltaSeconds) {
+      adjustTimeLeft(reaction.timeDeltaSeconds);
+    }
+  }
+}
+
 // Returns true when the ingredient was added.
 export function addIngredient(ingredientId: string): boolean {
   if (gameState.status !== 'playing') {
@@ -227,8 +299,46 @@ export function addIngredient(ingredientId: string): boolean {
     return false;
   }
 
+  const ingredientsBeforeAdd = gameState.cauldronIngredients;
   gameState.cauldronIngredients = result.cauldronIngredients;
   gameState.shelfStock = result.shelfStock;
+
+  applyFiredReactions(ingredientsBeforeAdd, gameState.cauldronIngredients);
+
+  // A reaction clearing the cauldron can leave the shelf and cauldron both
+  // empty at once, the same "stuck" state brew() already checks for.
+  if (gameState.status === 'playing') {
+    checkOutOfIngredients();
+  }
+
+  persistGame();
+  return true;
+}
+
+// Pour Out is only allowed while a game is running and the cauldron is not
+// empty — same non-empty condition as Brew, since there would be nothing to
+// clear otherwise (see US 3.4).
+export function canPourOut(): boolean {
+  return gameState.status === 'playing' && gameState.cauldronIngredients.length >= 1;
+}
+
+// Manually clears a mixture that went wrong, without losing a life (unlike
+// a failed Brew) or affecting score or lives. Costs a fixed 10 seconds off
+// the timer, which can itself end the game ("time"). The emptied-out
+// ingredients are not returned to the shelf, and the active recipe does not
+// change. Returns true when something was actually poured out.
+export function pourOut(): boolean {
+  if (!canPourOut()) {
+    return false;
+  }
+
+  clearCauldron();
+  adjustTimeLeft(-POUR_OUT_TIME_COST_SECONDS);
+
+  if (gameState.status === 'playing') {
+    checkOutOfIngredients();
+  }
+
   persistGame();
   return true;
 }
@@ -257,11 +367,11 @@ export function brew(): boolean {
     setTimeLeft(
       Math.min(gameState.timeLeft + settings.timeBonusSeconds, settings.startingTimeSeconds),
     );
-    gameState.cauldronIngredients = [];
+    clearCauldron();
     gameState.activeRecipe = pickRandomRecipe(RECIPES, getDifficulty());
   } else {
     gameState.lives -= 1;
-    gameState.cauldronIngredients = [];
+    clearCauldron();
 
     if (gameState.lives <= 0) {
       endGame('lives');
@@ -305,6 +415,7 @@ export function continueGame(): boolean {
   gameState.shelfStock = save.shelfStock;
   gameState.gameOverReason = undefined;
   gameState.scoreSaved = false;
+  gameState.lastReactionId = null;
   gameState.status = 'paused';
   persistGame();
 
